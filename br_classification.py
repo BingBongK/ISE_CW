@@ -71,7 +71,7 @@ def clean_str(string):
 import os
 import subprocess
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'pytorch'
+project = 'caffe'
 path = f'{project}.csv'
 
 pd_all = pd.read_csv(path)
@@ -186,8 +186,7 @@ for repeated_time in range(REPEAT):
     f1_scores.append(f1)
 
     # AUC
-    # If labels are 0/1 only, this works directly.
-    # If labels are something else, adjust pos_label accordingly.
+    # Calculating the AUC with probability of it being a class and not just the class value
     y_prob = best_clf.predict_proba(X_test)[:, 1]
     fpr, tpr, _ = roc_curve(y_test, y_prob)
     auc_val = auc(fpr, tpr)

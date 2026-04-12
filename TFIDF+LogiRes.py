@@ -78,7 +78,7 @@ import os
 import subprocess
 
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'pytorch'
+project = 'caffe'
 path = f'{project}.csv'
 
 pd_all = pd.read_csv(path)
@@ -159,8 +159,8 @@ for repeated_time in range(REPEAT):
     X_train = tfidf.fit_transform(train_text)
     X_test = tfidf.transform(test_text)
 
-    # --- 4.3 Naive Bayes model & GridSearch ---
-    clf = LogisticRegression(max_iter=1000, random_state=16)
+    # --- 4.3 Logistic Regression model & GridSearch ---
+    clf = LogisticRegression(max_iter=1000, random_state=16, class_weight='balanced')
     grid = GridSearchCV(
         clf,
         params,
