@@ -137,6 +137,7 @@ precisions = []
 recalls = []
 f1_scores = []
 auc_values = []
+best_C_values = []
 
 for repeated_time in range(REPEAT):
     # --- 4.1 Split into train/test ---
@@ -199,6 +200,7 @@ for repeated_time in range(REPEAT):
     fpr, tpr, _ = roc_curve(y_test, y_prob)
     auc_val = auc(fpr, tpr)
     auc_values.append(auc_val)
+    best_C_values.append(grid.best_params_['C'])
 
 # --- 4.5 Aggregate results ---
 final_accuracy = np.mean(accuracies)
@@ -214,6 +216,20 @@ print(f"Average Precision:     {final_precision:.4f}")
 print(f"Average Recall:        {final_recall:.4f}")
 print(f"Average F1 score:      {final_f1:.4f}")
 print(f"Average AUC:           {final_auc:.4f}")
+
+from collections import Counter
+
+c_counts = Counter(best_C_values)
+
+print("\n=== Best C frequency across all runs ===")
+for c, count in sorted(c_counts.items()):
+    print(f"C = {c}: selected {count} times")
+
+# Most common C
+best_overall_C = c_counts.most_common(1)[0]
+
+print("\n=== Final Selected C ===")
+print(f"Best C overall = {best_overall_C[0]} (selected {best_overall_C[1]} times)")
 
 # Save final results to CSV (append mode)
 try:

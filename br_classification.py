@@ -10,6 +10,10 @@ import os
 # Text and feature engineering
 from sklearn.feature_extraction.text import TfidfVectorizer
 
+# Include weight to classes
+from sklearn.utils.class_weight import compute_sample_weight
+
+
 # Evaluation and tuning
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.metrics import (accuracy_score, precision_score, recall_score,
@@ -71,7 +75,7 @@ def clean_str(string):
 import os
 import subprocess
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'caffe'
+project = 'keras'
 path = f'{project}.csv'
 
 pd_all = pd.read_csv(path)
@@ -160,7 +164,9 @@ for repeated_time in range(REPEAT):
         cv=5,              # 5-fold CV (can be changed)
         scoring='roc_auc'  # Using roc_auc as the metric for selection
     )
-    grid.fit(X_train, y_train)
+
+    sample_weights = compute_sample_weight(class_weight='balanced', y=y_train)
+    grid.fit(X_train, y_train, sample_weight=sample_weights)
 
     # Retrieve the best model
     best_clf = grid.best_estimator_
