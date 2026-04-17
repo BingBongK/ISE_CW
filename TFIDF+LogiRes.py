@@ -128,7 +128,7 @@ data[text_col] = data[text_col].apply(clean_str)
 # ========== Hyperparameter grid ==========
 # We use logspace for var_smoothing: [1e-12, 1e-11, ..., 1]
 params = {
-    'C': [1, 5, 10, 25, 100]
+    'C': [0.1, 0.5, 1, 2.5, 5]
 }
 
 # Lists to store metrics across repeated runs
@@ -155,7 +155,9 @@ for repeated_time in range(REPEAT):
     # --- 4.2 TF-IDF vectorization ---
     tfidf = TfidfVectorizer(
         ngram_range=(1, 2),
-        max_features=1000  # Adjust as needed
+        max_features=1000,
+        min_df=2,
+        max_df=0.9  # Adjust as needed
     )
     X_train = tfidf.fit_transform(train_text)
     X_test = tfidf.transform(test_text)
@@ -166,7 +168,7 @@ for repeated_time in range(REPEAT):
         clf,
         params,
         cv=5,  # 5-fold CV (can be changed)
-        scoring='roc_auc'  # Using roc_auc as the metric for selection
+        scoring='f1_macro'  # Using roc_auc as the metric for selection
     )
     grid.fit(X_train, y_train)
 
