@@ -15,7 +15,7 @@ from sklearn.metrics import (accuracy_score, precision_score, recall_score,
                              f1_score, roc_curve, auc)
 
 # Classifier
-from sklearn.svm import SVC
+from sklearn.svm import SVC, LinearSVC
 
 # Text cleaning & stopwords
 import nltk
@@ -78,7 +78,7 @@ import os
 import subprocess
 
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'caffe '
+project = 'pytorch'
 path = f'{project}.csv'
 
 pd_all = pd.read_csv(path)
@@ -109,7 +109,7 @@ datafile = 'Title+Body.csv'
 REPEAT = 100
 
 # 3) Output CSV file name
-out_csv_name = f'LRTFIDF_test/{project}_LRTFIDF.csv'
+out_csv_name = f'SVMTFIDF_test/{project}_SVMTFIDF.csv'
 os.makedirs(os.path.dirname(out_csv_name), exist_ok=True)
 
 # ========== Read and clean data ==========
@@ -137,6 +137,7 @@ precisions = []
 recalls = []
 f1_scores = []
 auc_values = []
+best_C_values = []
 
 for repeated_time in range(REPEAT):
     # --- 4.1 Split into train/test ---
@@ -154,18 +155,20 @@ for repeated_time in range(REPEAT):
     # --- 4.2 TF-IDF vectorization ---
     tfidf = TfidfVectorizer(
         ngram_range=(1, 2),
-        max_features=1000  # Adjust as needed
+        max_features=2500,
+        min_df=2,
+        max_df=0.9   # Adjust as needed
     )
     X_train = tfidf.fit_transform(train_text)
     X_test = tfidf.transform(test_text)
 
     # --- 4.3 Naive Bayes model & GridSearch ---
-    clf = LogisticRegression(max_iter=1000, random_state=16)
+    clf = LinearSVC(max_iter=5000, random_state=16, class_weight='balanced')
     grid = GridSearchCV(
         clf,
         params,
         cv=5,  # 5-fold CV (can be changed)
-        scoring='roc_auc'  # Using roc_auc as the metric for selection
+        scoring='f1_macro'  # Using roc_auc as the metric for selection
     )
     grid.fit(X_train, y_train)
 
@@ -195,9 +198,12 @@ for repeated_time in range(REPEAT):
     # AUC
     # If labels are 0/1 only, this works directly.
     # If labels are something else, adjust pos_label accordingly.
-    fpr, tpr, _ = roc_curve(y_test, y_pred, pos_label=1)
+    y_prob = best_clf.decision_function(X_test)
+    fpr, tpr, _ = roc_curve(y_test, y_prob)
     auc_val = auc(fpr, tpr)
     auc_values.append(auc_val)
+    best_C_values.append(grid.best_params_['C'])
+
 
 # --- 4.5 Aggregate results ---
 final_accuracy = np.mean(accuracies)
@@ -206,13 +212,27 @@ final_recall = np.mean(recalls)
 final_f1 = np.mean(f1_scores)
 final_auc = np.mean(auc_values)
 
-print("=== Logistic Regression + TF-IDF Results ===")
+print("=== SVM + TF-IDF Results ===")
 print(f"Number of repeats:     {REPEAT}")
 print(f"Average Accuracy:      {final_accuracy:.4f}")
 print(f"Average Precision:     {final_precision:.4f}")
 print(f"Average Recall:        {final_recall:.4f}")
 print(f"Average F1 score:      {final_f1:.4f}")
 print(f"Average AUC:           {final_auc:.4f}")
+
+from collections import Counter
+
+c_counts = Counter(best_C_values)
+
+print("\n=== Best C frequency across all runs ===")
+for c, count in sorted(c_counts.items()):
+    print(f"C = {c}: selected {count} times")
+
+# Most common C
+best_overall_C = c_counts.most_common(1)[0]
+
+print("\n=== Final Selected C ===")
+print(f"Best C overall = {best_overall_C[0]} (selected {best_overall_C[1]} times)")
 
 # Save final results to CSV (append mode)
 try:
