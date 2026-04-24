@@ -109,7 +109,7 @@ datafile = 'Title+Body.csv'
 REPEAT = 100
 
 # 3) Output CSV file name
-out_csv_name = f'LRTFIDF_test/{project}_LRTFIDF.csv'
+out_csv_name = f'Final_test/{project}_Final.csv'
 os.makedirs(os.path.dirname(out_csv_name), exist_ok=True)
 
 # ========== Read and clean data ==========
@@ -128,7 +128,7 @@ data[text_col] = data[text_col].apply(clean_str)
 # ========== Hyperparameter grid ==========
 # We use logspace for var_smoothing: [1e-12, 1e-11, ..., 1]
 params = {
-    'C': [0.1, 0.5, 1, 2.5, 5]
+    'C': [2.5]
 }
 
 # Lists to store metrics across repeated runs
@@ -137,7 +137,7 @@ precisions = []
 recalls = []
 f1_scores = []
 auc_values = []
-best_C_values = []
+
 
 for repeated_time in range(REPEAT):
     # --- 4.1 Split into train/test ---
@@ -155,7 +155,7 @@ for repeated_time in range(REPEAT):
     # --- 4.2 TF-IDF vectorization ---
     tfidf = TfidfVectorizer(
         ngram_range=(1, 2),
-        max_features=1000,
+        max_features=3000,
         min_df=2,
         max_df=0.9  # Adjust as needed
     )
@@ -168,7 +168,7 @@ for repeated_time in range(REPEAT):
         clf,
         params,
         cv=5,  # 5-fold CV (can be changed)
-        scoring='f1_macro'  # Using roc_auc as the metric for selection
+        scoring='f1_macro'  # Using f1_macro as the metric for selection
     )
     grid.fit(X_train, y_train)
 
@@ -202,7 +202,7 @@ for repeated_time in range(REPEAT):
     fpr, tpr, _ = roc_curve(y_test, y_prob)
     auc_val = auc(fpr, tpr)
     auc_values.append(auc_val)
-    best_C_values.append(grid.best_params_['C'])
+
 
 # --- 4.5 Aggregate results ---
 final_accuracy = np.mean(accuracies)
@@ -219,19 +219,7 @@ print(f"Average Recall:        {final_recall:.4f}")
 print(f"Average F1 score:      {final_f1:.4f}")
 print(f"Average AUC:           {final_auc:.4f}")
 
-from collections import Counter
 
-c_counts = Counter(best_C_values)
-
-print("\n=== Best C frequency across all runs ===")
-for c, count in sorted(c_counts.items()):
-    print(f"C = {c}: selected {count} times")
-
-# Most common C
-best_overall_C = c_counts.most_common(1)[0]
-
-print("\n=== Final Selected C ===")
-print(f"Best C overall = {best_overall_C[0]} (selected {best_overall_C[1]} times)")
 
 # Save final results to CSV (append mode)
 try:
