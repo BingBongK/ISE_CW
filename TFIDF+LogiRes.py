@@ -126,7 +126,7 @@ data[text_col] = data[text_col].apply(remove_stopwords)
 data[text_col] = data[text_col].apply(clean_str)
 
 # ========== Hyperparameter grid ==========
-# We use logspace for var_smoothing: [1e-12, 1e-11, ..., 1]
+# Use of C for regularisation
 params = {
     'C': [0.1, 0.5, 1, 2.5, 5]
 }

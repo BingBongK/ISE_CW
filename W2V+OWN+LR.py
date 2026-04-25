@@ -126,7 +126,7 @@ data[text_col] = data[text_col].apply(remove_stopwords)
 data[text_col] = data[text_col].apply(clean_str)
 
 # ========== Hyperparameter grid ==========
-# We use logspace for var_smoothing: [1e-12, 1e-11, ..., 1]
+# Use of C for regularisation
 params = {
     'C': [50, 100, 250, 500, 1000]
 }
@@ -176,7 +176,7 @@ for repeated_time in range(REPEAT):
     X_train = np.array([document_vector(tokens, W2V) for tokens in train_text])
     X_test = np.array([document_vector(tokens, W2V) for tokens in test_text])
 
-    # --- 4.3 Logistic Regression model & GridSearch ---
+    # --- 4.4 Logistic Regression model & GridSearch ---
     clf = LogisticRegression(max_iter=1000, random_state=16, class_weight='balanced')
     grid = GridSearchCV(
         clf,
@@ -190,7 +190,7 @@ for repeated_time in range(REPEAT):
     best_clf = grid.best_estimator_
     best_clf.fit(X_train, y_train)
 
-    # --- 4.4 Make predictions & evaluate ---
+    # --- 4.5 Make predictions & evaluate ---
     y_pred = best_clf.predict(X_test)
 
     # Accuracy
@@ -218,7 +218,7 @@ for repeated_time in range(REPEAT):
     auc_values.append(auc_val)
     best_C_values.append(grid.best_params_['C'])
 
-# --- 4.5 Aggregate results ---
+# --- 4.6 Aggregate results ---
 final_accuracy = np.mean(accuracies)
 final_precision = np.mean(precisions)
 final_recall = np.mean(recalls)

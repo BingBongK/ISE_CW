@@ -75,7 +75,7 @@ def clean_str(string):
 import os
 import subprocess
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'keras'
+project = 'pytorch'
 path = f'{project}.csv'
 
 pd_all = pd.read_csv(path)
@@ -162,7 +162,7 @@ for repeated_time in range(REPEAT):
         clf,
         params,
         cv=5,              # 5-fold CV (can be changed)
-        scoring='roc_auc'  # Using roc_auc as the metric for selection
+        scoring='f1_macro'  # Using roc_auc as the metric for selection
     )
 
     sample_weights = compute_sample_weight(class_weight='balanced', y=y_train)

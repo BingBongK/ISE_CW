@@ -78,7 +78,7 @@ import os
 import subprocess
 
 # Choose the project (options: 'pytorch', 'tensorflow', 'keras', 'incubator-mxnet', 'caffe')
-project = 'incubator-mxnet'
+project = 'pytorch'
 path = f'{project}.csv'
 
 pd_all = pd.read_csv(path)
@@ -106,7 +106,7 @@ pd_tplusb.to_csv('Title+Body.csv', index=False, columns=["id", "Number", "sentim
 datafile = 'Title+Body.csv'
 
 # 2) Number of repeated experiments
-REPEAT = 100
+REPEAT = 1000
 
 # 3) Output CSV file name
 out_csv_name = f'Final_test/{project}_Final.csv'
@@ -126,7 +126,7 @@ data[text_col] = data[text_col].apply(remove_stopwords)
 data[text_col] = data[text_col].apply(clean_str)
 
 # ========== Hyperparameter grid ==========
-# We use logspace for var_smoothing: [1e-12, 1e-11, ..., 1]
+# Use of C for regularisation
 params = {
     'C': [2.5]
 }
